@@ -53,15 +53,16 @@ function Import-WinGetApplication {
 
         # Create directory that MDT will import from
         $publisher = $manifest.Publisher.Split(" ")[0]
-        $installerFileName = "$($manifest.appName).$($installerExtension)"
-        $installerFolder = "TEMP\$($publisher)\$($manifest.Name)"
-        $installerPath = "$installerFolder\$installerFileName"
         if ($manifest.InstallerType.ToLower() -ne "msi" -and $manifest.InstallerType.ToLower() -ne "wix") { 
             $installerExtension = "exe"
         }
         else {$installerExtension = "msi"}
-
+        $installerFileName = "$($manifest.appName).$($installerExtension)"
+        $installerFolder = "TEMP\$($publisher)\$($manifest.Name)"
+        $installerPath = "$installerFolder\$installerFileName"
         New-Item -ItemType Directory $installerFolder -Force
+        
+
         # Download the file.
         Invoke-WebRequest $manifest.Installers.Url -OutFile $installerPath
         Write-Host (Get-FileHash $installerPath).Hash.ToLower()
@@ -97,7 +98,7 @@ function Import-WinGetApplication {
             "Version" = $manifest.Version
             "Publisher" = $manifest.Publisher
             "CommandLine" = $silentInstallCommand
-            "WorkingDirectory" = ".\Applications\$installerFolder"
+            "WorkingDirectory" = ".\Applications\$publisher\$manifest.Name"
             "ApplicationSourcePath" = "$(pwd)\$installerFolder"
             "DestinationFolder" = "$($publisher)\$($manifest.Name)"
         }
